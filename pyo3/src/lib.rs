@@ -1,5 +1,6 @@
 extern crate serde;
 extern crate serde_json;
+extern crate polars
 use log::{debug, error, info, warn};
 use pyo3::exceptions::PyOSError;
 use pyo3::prelude::*;
