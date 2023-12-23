@@ -40,6 +40,7 @@ git pull
 python3  -m venv .env
 source .env/bin/activate
 maturin develop --release
+(or "maturin build --release" if you need wheel file under /target/wheels)
 ```
 
 ## More information
