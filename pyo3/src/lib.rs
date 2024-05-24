@@ -1,22 +1,23 @@
 
-use log::{debug, error, info, warn};
-use pyo3::exceptions::PyOSError;
+// use log::{debug, error, info, warn};
+// use pyo3::exceptions::PyOSError;
 use pyo3::prelude::*;
-use pyo3::wrap_pyfunction;
-use pyo3_log;
+// use pyo3::wrap_pyfunction;
+// use pyo3_log;
 
 use polars::prelude::*;
-use futures;
-use std::env;
+// use futures;
+// use std::env;
 use tokio;
 
 
 // include crates used for aws s3 connections
 // use aws_sdk_s3::model::PutObjectRequest;
-use tokio::fs::File;
+// use tokio::fs::File;
 use tokio::io::AsyncReadExt;
 // use aws_sdk_s3::{Client, Config, Region};
-use aws_sdk_s3::{Client, Config};
+// use aws_sdk_s3::{Client, Config};
+use aws_sdk_s3::{Client};
 // use aws_types::credentials::SharedCredentialsProvider;
 use std::error::Error;
 
