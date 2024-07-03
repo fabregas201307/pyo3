@@ -1,6 +1,6 @@
 extern crate serde;
-extern crate serde_json;
-extern crate polars;
+// extern crate serde_json;
+// extern crate polars;
 use log::{debug, error, info, warn};
 use pyo3::exceptions::PyOSError;
 use pyo3::prelude::*;
@@ -8,32 +8,36 @@ use pyo3::wrap_pyfunction;
 use pyo3_log;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use serde_json;
+// use serde;
+
 
 use ndarray::{Array, Array2};
 use ndarray_stats:SummaryStatisticsExt;
 use statrs::statistics::Statistics;
 use statsmodels::Regression
+use polars::prelude::*;
 
 use std::fmt;
 
 /// Multiply two numbers:
-#[pyfunction]
-fn rolling_ols_regression(df: polars.DataFrame, n: isize) -> Polars<isize> {
-    """
-    rolling regression function to be called via .apply() when fiting the OU process.
-    Parameters
-    --------------
-    df: polars dataframe, columns are ['date', 'identifier', 'residual', 'sum_res',
-                                        'sum_res_lag', 'a', 'b1', 'rss']
-        only one unique identifier is allowed, as this is a rolling regression
-    n: window size to fit the ols regression
-    """
-    let nrows = df.height()
-    for i in n..nrows{
-        let tmp = df.slice();
+// #[pyfunction]
+// fn rolling_ols_regression(df: polars.DataFrame, n: isize) -> Polars<isize> {
+//     """
+//     rolling regression function to be called via .apply() when fiting the OU process.
+//     Parameters
+//     --------------
+//     df: polars dataframe, columns are ['date', 'identifier', 'residual', 'sum_res',
+//                                         'sum_res_lag', 'a', 'b1', 'rss']
+//         only one unique identifier is allowed, as this is a rolling regression
+//     n: window size to fit the ols regression
+//     """
+//     let nrows = df.height()
+//     for i in n..nrows{
+//         let tmp = df.slice();
         
-    }
-}
+//     }
+// }
 
 
 /// Multiply two numbers:
