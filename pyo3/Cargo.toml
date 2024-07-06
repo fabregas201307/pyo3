@@ -26,3 +26,4 @@ tokio = { version = "1", features = ["full"] }
 statsmodels = "^0.0.1"
 statrs = "^0.13.0"
 ndarray = "^0.15.4"
+linregress = "0.5.0"

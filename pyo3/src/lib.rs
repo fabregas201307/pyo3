@@ -10,6 +10,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use serde_json;
 // use serde;
+use std::clone::Clone;
 
 
 use ndarray::{Array, Array2};
@@ -17,9 +18,163 @@ use ndarray::{Array, Array2};
 use statrs::statistics::Statistics;
 // use statsmodels::regression::linear_model::OLS;
 use polars::prelude::*;
+// use polars;
 use tokio;
+// use linregress::Linregress;
+use linregress::{FormulaRegressionBuilder, RegressionDataBuilder};
 
 use std::fmt;
+
+
+
+/// Wrapper for polars::prelude::DataFrame to expose to Python.
+#[pyclass]
+struct PyDataFrame {
+    df: DataFrame,
+}
+
+#[pymethods]
+impl PyDataFrame {
+    #[new]
+    fn new() -> Self {
+        PyDataFrame { df: DataFrame::default() }
+    }
+
+    // Example method to expose DataFrame's height to Python
+    fn height(&self) -> PyResult<usize> {
+        Ok(self.df.height())
+    }
+
+    /// Slices the DataFrame and returns a new PyDataFrame with the slice.
+    /// - `start`: The starting index of the slice.
+    /// - `end`: The ending index of the slice.
+    fn slice(&self, start: usize, end: usize) -> PyResult<PyDataFrame> {
+        // Perform bounds checking or handle errors as needed.
+        let sliced_df = self.df.slice(start as i64, (end - start) as i64);
+        Ok(PyDataFrame { df: sliced_df })
+    }
+
+    /// Retrieves a column by name and returns it as a Python object.
+    /// - `name`: The name of the column to retrieve.
+    fn get_column(&self, name: &str) -> PyResult<PyObject> {
+        match self.df.column(name) {
+            Ok(column) => {
+                // Assuming you have a PySeries wrapper similar to PyDataFrame
+                // let py_series = PySeries { series: column.clone() };
+                // Ok(Py::new(py, py_series)?)
+
+                // Or convert the column to a Python list for simplicity
+                let gil = Python::acquire_gil();
+                let py = gil.python();
+                let list: Vec<_> = column.f64().unwrap().into_iter().map(|opt_val| {
+                    match opt_val {
+                        Some(val) => val.to_object(py),
+                        None => py.None(),
+                    }
+                }).collect();
+                Ok(list.to_object(py))
+            },
+            Err(_) => Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(
+                format!("Column '{}' not found", name),
+            )),
+        }
+    }
+
+}
+
+
+// Assuming PyDataFrame is a struct, we will manually implement Clone.
+impl Clone for PyDataFrame {
+    fn clone(&self) -> Self {
+        // Create a new PyDataFrame instance with cloned data from `self`
+        // This is a simplified example. You would need to clone each field.
+        PyDataFrame {
+            // Assuming `data` is a field in PyDataFrame that needs to be cloned.
+            // This requires that the type of `data` also implements `Clone`.
+            data: self.data.clone(),
+            // Repeat for other fields as necessary.
+        }
+    }
+}
+
+
+
+/// A Python module implemented in Rust.
+#[pymodule]
+fn my_polars_module(_py: Python, m: &PyModule) -> PyResult<()> {
+    m.add_class::<PyDataFrame>()?;
+    Ok(())
+}
+
+
+//// define pyfunction to fill OLS regression, given a dataframe
+#[pyfunction]
+fn rolling_ols_regression(df: PyDataFrame, n: usize) -> PyResult<DataFrame> {
+    /*
+    df: polars dataframe, columns are ['date', 'identifier', 'residual', 'y',
+                                        'x', 'slope', 'intercept', 'rvalue']
+        only one unique identifier is allowed, as this is a rolling regression
+    n: window size to fit the ols regression
+    */
+    let nrows = df.height();
+    let mut a: Vec<f64> = Vec::new();
+    let mut b1: Vec<f64> = Vec::new();
+    let mut rss: Vec<f64> = Vec::new();
+    for i in n..nrows {
+        let tmp = df.slice(i - n, i);
+        let x = tmp.get_column("x").unwrap().f64().unwrap();
+        let y = tmp.get_column("y").unwrap().f64().unwrap();
+        let data = vec![("Y", y), ("X", x)];
+        let data = RegressionDataBuilder::new().build_from(data)?;
+        let formula = "Y ~ X";
+        let model = FormulaRegressionBuilder::new()
+            .data(&data)
+            .formula(formula)
+            .fit()?;
+
+        let parameters: Vec<_> = model.iter_parameter_pairs().collect();
+        let pvalues: Vec<_> = model.iter_p_value_pairs().collect();
+        let standard_errors: Vec<_> = model.iter_se_pairs().collect();
+        // get the intercept and slope from the model        
+        let my_parameter = parameters.iter().find(|&&(key, _)| key == "X").map(|&(_, value)| value);
+        let my_pvalue = pvalues.iter().find(|&&(key, _)| key == "X").map(|&(_, value)| value);
+        let my_standard_error = standard_errors.iter().find(|&&(key, _)| key == "X").map(|&(_, value)| value);
+
+        if let Some(value) = my_parameter {
+            println!("Value of X: {}", value);
+            a.push(value);
+        } else {
+            println!("X not found");
+        }
+
+
+        if let Some(value) = my_pvalue {
+            println!("Value of X: {}", value);
+            b1.push(value);
+        } else {
+            println!("X not found");
+        }
+
+        if let Some(value) = my_standard_error {
+            println!("Value of X: {}", value);
+            rss.push(value);
+        } else {
+            println!("X not found");
+        }
+
+        // a.push(my_parameter);
+        // b1.push(my_pvalue);
+        // rss.push(my_standard_error);
+    }
+    let a = Series::new("slope", a);
+    let b1 = Series::new("intercept", b1);
+    let rss = Series::new("rvalue", rss);
+    let mut df = df.clone();
+    df.add_column(a).unwrap();
+    df.add_column(b1).unwrap();
+    df.add_column(rss).unwrap();
+    Ok(df)
+}  
 
 /// Multiply two numbers:
 // #[pyfunction]
