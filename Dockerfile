@@ -8,14 +8,13 @@ COPY . /opt/pyo3
 RUN cd /opt/pyo3/pyo3 && cargo update
 RUN python3 -m venv /opt/venv \
     && chmod -R 755 /opt/venv
-    
 RUN . /opt/venv/bin/activate && pip install -r /opt/pyo3/requirements.txt
 
 # Set the default Python executable to the virtual environment
 ENV PATH="/opt/venv/bin:$PATH"
 
 # Default work directory
-WORKDIR /opt/pyo3
+WORKDIR /opt
 
 # Default command
 CMD ["bash"]
