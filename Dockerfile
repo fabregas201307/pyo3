@@ -1,4 +1,4 @@
-FROM rust:latest
+FROM rust:1.82.0
 RUN apt-get update \
     && apt-get install -y vim \
     && apt-get install -y python3.11-venv
