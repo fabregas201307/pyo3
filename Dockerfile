@@ -3,6 +3,10 @@ RUN apt-get update \
     && apt-get install -y vim \
     && apt-get install -y python3.11-venv
 
+# Install the nightly Rust toolchain
+RUN rustup install nightly \
+    && rustup default nightly
+
 COPY . /opt/pyo3
 
 RUN cd /opt/pyo3/pyo3 && cargo update
