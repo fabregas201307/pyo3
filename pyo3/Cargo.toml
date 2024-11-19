@@ -3,25 +3,18 @@ name = "polars-speed-test"
 version = "0.1.0"
 edition = "2021"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [lib]
 name = "polars_speed_test"
 crate-type = ["cdylib"]
 
 [dependencies]
-pyo3 = "0.20"
-polars = { version = "0.34", default-features = false, features = ["cse", "lazy", "nightly", "performant"] }
+polars = { version = "0.34", features = ["lazy"] }
+pyo3 = { version = "0.20", features = ["extension-module"] }
 pyo3-polars = "0.8"
 
 [features]
 extension-module = ["pyo3/extension-module"]
 default = ["extension-module"]
-
-[target.'cfg(any(not(target_os = "linux"), use_mimalloc))'.dependencies]
-mimalloc = { version = "0.1", default-features = false }
-
-[target.'cfg(all(target_os = "linux", not(use_mimalloc)))'.dependencies]
-jemallocator = { version = "0.5", features = ["disable_initial_exec_tls"] }
 
 [profile.release]
 lto = "fat"

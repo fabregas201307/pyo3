@@ -12,10 +12,10 @@ classifiers = [
 ]
 dynamic = ["version"]
 dependencies = [
-    "numpy~=1.26",
-    "pandas~=2.1",
-    "polars~=0.19",
-    "pyarrow~=14.0"
+    "numpy>=1.26",
+    "pandas>=2.0",
+    "polars>=0.19",
+    "pyarrow>=14.0"
 ]
 
 [tool.maturin]

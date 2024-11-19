@@ -1,11 +1,14 @@
-FROM rust:1.82.0
+# FROM rust:1.82.0
+FROM rust:nightly
+# FROM rust:latest
+
 RUN apt-get update \
     && apt-get install -y vim \
     && apt-get install -y python3.11-venv
 
 # Install the nightly Rust toolchain
-RUN rustup install nightly \
-    && rustup default nightly
+# RUN rustup install nightly \
+#     && rustup default nightly
 
 COPY . /opt/pyo3
 
